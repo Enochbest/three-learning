@@ -3,14 +3,8 @@ import * as THREE from "three";
 //导入轨道控制器
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
-
-
 // 1、创建场景
 const scene = new THREE.Scene();
-
-//添加坐标辅助
-const axesHepler = new THREE.AxesHelper( 5 )
-scene.add(axesHepler)
 
 //创建相机
 //几个参数
@@ -21,6 +15,7 @@ scene.add(axesHepler)
 const camera = new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000)
 
 //设置相机位置
+
 camera.position.set(0,0,10)
 
 //添加相机到场景
@@ -33,13 +28,6 @@ const material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
 //创建物体
 const cube = new THREE.Mesh( geometry, material );
 
-// //缩放物体
-cube.scale.set(3,2,1)
-cube.scale.x = 5
-
-//旋转(设置旋转循序,按轴的顺序
-cube.rotation.set(Math.PI/4,0,0,'XZY')
-cube.rotation.x = 0.01
 //添加物体到场景中
 scene.add(cube);
 
@@ -59,14 +47,6 @@ const controls = new OrbitControls(camera,renderer.domElement)
 //帧渲染
 function render() {
     //使用渲染器通过相机将场景渲染出来
-
-
-    //移动物体的位置
-    if (cube.position.x > 5){
-        cube.position.x = 0
-    }else {
-        cube.position.x += 0.01
-    }
     renderer.render(scene,camera)
     //下一帧调用render函数
     requestAnimationFrame(render)
