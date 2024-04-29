@@ -26,20 +26,20 @@ camera.position.set(0,0,10)
 //添加相机到场景
 scene.add(camera)
 
+//导入纹理
+const textureLoader = new THREE.TextureLoader()
+const doorTexture =  textureLoader.load('./textures/door/color.jpg')
+
+
 //创建几何体对象
 const geometry = new THREE.BoxGeometry( 1, 1, 1 )
 //创建材质
-const material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
+const material = new THREE.MeshBasicMaterial( {map:doorTexture} );
 //创建物体
 const cube = new THREE.Mesh( geometry, material );
 
-// //缩放物体
-cube.scale.set(3,2,1)
-cube.scale.x = 5
 
-//旋转(设置旋转循序,按轴的顺序
-cube.rotation.set(Math.PI/4,0,0,'XZY')
-cube.rotation.x = 0.01
+
 //添加物体到场景中
 scene.add(cube);
 
@@ -56,24 +56,21 @@ document.body.appendChild(renderer.domElement)
 //创建轨道控制器
 const controls = new OrbitControls(camera,renderer.domElement)
 
+//设置控制器阻尼,增加真实感,必须在动画循环里调用update
+controls.enableDamping = true
+
+
 //帧渲染
 function render() {
-    //使用渲染器通过相机将场景渲染出来
 
-
-    //移动物体的位置
-    if (cube.position.x > 5){
-        cube.position.x = 0
-    }else {
-        cube.position.x += 0.01
-    }
+    //阻尼效果更新
+    controls.update();
     renderer.render(scene,camera)
     //下一帧调用render函数
     requestAnimationFrame(render)
 }
 
 render()
-
 
 
 
