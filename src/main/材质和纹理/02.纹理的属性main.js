@@ -13,11 +13,6 @@ const axesHepler = new THREE.AxesHelper( 5 )
 scene.add(axesHepler)
 
 //创建相机
-//几个参数
-//fov — 摄像机视锥体垂直视野角度
-// aspect — 摄像机视锥体长宽比
-// near — 摄像机视锥体近端面
-// far — 摄像机视锥体远端面
 const camera = new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000)
 
 //设置相机位置
@@ -29,33 +24,37 @@ scene.add(camera)
 //导入纹理
 const textureLoader = new THREE.TextureLoader()
 
-//加载颜色纹理
 const doorTexture =  textureLoader.load('./textures/door/color.jpg')
 
-//加载灰度纹理
-const alphaTexture =  textureLoader.load('./textures/door/alpha.jpg')
+//设置纹理的偏移量 范围是0-1
+// doorTexture.offset.x = 0
+// doorTexture.offset.y = 0
+// doorTexture.offset.set(0.5,0.5)
+
+
+// //设置旋转的中心点(围绕中心点旋转)
+// doorTexture.center.set(0.5,0.5)
+//
+// //设置纹理的旋转(默认按照左下角进行旋转)
+// doorTexture.rotation = Math.PI / 4
+
+
+//设置纹理的重复 X轴重复2此,
+doorTexture.repeat.set(2,3)
+
+//设置重复的模式
+doorTexture.wrapS = THREE.MirroredRepeatWrapping
+doorTexture.wrapT = THREE.RepeatWrapping
+
+
 
 //创建几何体对象
 const geometry = new THREE.BoxGeometry( 1, 1, 1 )
 //创建材质
-const material = new THREE.MeshBasicMaterial( {
-    map:doorTexture,
-    alphaMap:alphaTexture,
-    transparent:true,
-    //设置两面渲染
-    side:THREE.DoubleSide
-} );
+const material = new THREE.MeshBasicMaterial( { map:doorTexture } );
 //创建物体
 const cube = new THREE.Mesh( geometry, material );
 
-
-const plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(1,1),
-    material
-)
-
-plane.position.set(3,0,0)
-scene.add(plane);
 
 
 //添加物体到场景中

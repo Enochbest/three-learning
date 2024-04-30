@@ -32,30 +32,14 @@ const textureLoader = new THREE.TextureLoader()
 //加载颜色纹理
 const doorTexture =  textureLoader.load('./textures/door/color.jpg')
 
-//加载灰度纹理
-const alphaTexture =  textureLoader.load('./textures/door/alpha.jpg')
 
 //创建几何体对象
 const geometry = new THREE.BoxGeometry( 1, 1, 1 )
 //创建材质
-const material = new THREE.MeshBasicMaterial( {
-    map:doorTexture,
-    alphaMap:alphaTexture,
-    transparent:true,
-    //设置两面渲染
-    side:THREE.DoubleSide
-} );
+const material = new THREE.MeshBasicMaterial( { map:doorTexture } );
 //创建物体
 const cube = new THREE.Mesh( geometry, material );
 
-
-const plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(1,1),
-    material
-)
-
-plane.position.set(3,0,0)
-scene.add(plane);
 
 
 //添加物体到场景中
