@@ -26,40 +26,41 @@ camera.position.set(0,0,10)
 //添加相机到场景
 scene.add(camera)
 
-//导入纹理
-const textureLoader = new THREE.TextureLoader()
 
-//加载颜色纹理
-const doorTexture =  textureLoader.load('./textures/door/color.jpg')
+//设置cube纹理加载器
+const cubeTextureLoader = new THREE.CubeTextureLoader()
 
-//加载灰度纹理
-const alphaTexture =  textureLoader.load('./textures/door/alpha.jpg')
+const envMapTexture = cubeTextureLoader.load([
+    '/textures/environmentMaps/0/px.jpg',
+    '/textures/environmentMaps/0/nx.jpg',
+    '/textures/environmentMaps/0/py.jpg',
+    '/textures/environmentMaps/0/ny.jpg',
+    '/textures/environmentMaps/0/pz.jpg',
+    '/textures/environmentMaps/0/nz.jpg',
+])
 
-//创建几何体对象
-const geometry = new THREE.BoxGeometry( 1, 1, 1 )
-//创建材质
-const material = new THREE.MeshBasicMaterial( {
-    map:doorTexture,
-    alphaMap:alphaTexture,
-    transparent:true,
-    //设置两面渲染
-    side:THREE.DoubleSide,
-} );
-//创建物体
-const cube = new THREE.Mesh( geometry, material );
+const sphereGeometry = new THREE.SphereGeometry(1,20,20)
 
+const material = new THREE.MeshStandardMaterial({
+    metalness:0.7,
+    roughness:0.1,
+    envMap:envMapTexture
+})
 
-const plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(1,1),
-    material
-)
+const sphere = new THREE.Mesh(sphereGeometry,material)
 
-plane.position.set(3,0,0)
-scene.add(plane);
+scene.add(sphere)
 
 
-//添加物体到场景中
-scene.add(cube);
+//添加环境光(e无方向)
+const light = new THREE.AmbientLight(0xffffff,0.5)
+scene.add(light);
+
+//设置平行光源
+const directLight = new THREE.DirectionalLight(0xffffff,0.5)
+directLight.position.set(0,10,10)
+scene.add(directLight);
+
 
 //初始化渲染器
 const renderer = new THREE.WebGLRenderer()

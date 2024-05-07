@@ -2,8 +2,10 @@ import * as THREE from "three";
 
 //导入轨道控制器
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import * as dat from 'dat.gui'
 
-
+//初始化gui
+const gui = new dat.GUI()
 
 // 1、创建场景
 const scene = new THREE.Scene();
@@ -12,12 +14,6 @@ const scene = new THREE.Scene();
 const axesHepler = new THREE.AxesHelper( 5 )
 scene.add(axesHepler)
 
-//创建相机
-//几个参数
-//fov — 摄像机视锥体垂直视野角度
-// aspect — 摄像机视锥体长宽比
-// near — 摄像机视锥体近端面
-// far — 摄像机视锥体远端面
 const camera = new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000)
 
 //设置相机位置
@@ -26,46 +22,49 @@ camera.position.set(0,0,10)
 //添加相机到场景
 scene.add(camera)
 
-//导入纹理
+const sphereGeometry = new THREE.SphereGeometry(3,20,20)
+
+
+//点材质
+const pointsMaterial = new THREE.PointsMaterial()
+
+//点的大小,默认为1
+pointsMaterial.size = 0.05
+
+//设置点材质颜色
+pointsMaterial.color.set(0xfff000)
+
+//相机深度衰减 (近大远小)
+pointsMaterial.sizeAttenuation = true
+
+//载入纹理
 const textureLoader = new THREE.TextureLoader()
+const texture = textureLoader.load('./textures/particles/1.png')
 
-//加载颜色纹理
-const doorTexture =  textureLoader.load('./textures/door/color.jpg')
+//设置点材质纹理
+pointsMaterial.map = texture
+pointsMaterial.alphaMap = texture
+pointsMaterial.transparent = true
 
-//加载灰度纹理
-const alphaTexture =  textureLoader.load('./textures/door/alpha.jpg')
+//渲染此材质是否对深度缓冲区有任何影响。默认为true。
+pointsMaterial.depthWrite = false
 
-//创建几何体对象
-const geometry = new THREE.BoxGeometry( 1, 1, 1 )
-//创建材质
-const material = new THREE.MeshBasicMaterial( {
-    map:doorTexture,
-    alphaMap:alphaTexture,
-    transparent:true,
-    //设置两面渲染
-    side:THREE.DoubleSide,
-} );
-//创建物体
-const cube = new THREE.Mesh( geometry, material );
+//回合模式,叠加模式
+pointsMaterial.blending = THREE.AdditiveBlending
 
 
-const plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(1,1),
-    material
-)
+const points = new THREE.Points(sphereGeometry,pointsMaterial)
 
-plane.position.set(3,0,0)
-scene.add(plane);
+scene.add(points)
 
 
-//添加物体到场景中
-scene.add(cube);
 
 //初始化渲染器
 const renderer = new THREE.WebGLRenderer()
 
 //设置渲染尺寸的大小
 renderer.setSize(window.innerWidth,window.innerHeight)
+
 
 //将WebGL渲染的canvas添加到元素上(body)
 document.body.appendChild(renderer.domElement)
@@ -78,9 +77,9 @@ const controls = new OrbitControls(camera,renderer.domElement)
 controls.enableDamping = true
 
 
+
 //帧渲染
 function render() {
-
     //阻尼效果更新
     controls.update();
     renderer.render(scene,camera)

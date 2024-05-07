@@ -35,31 +35,47 @@ const doorTexture =  textureLoader.load('./textures/door/color.jpg')
 //加载灰度纹理
 const alphaTexture =  textureLoader.load('./textures/door/alpha.jpg')
 
+//加载环境遮挡贴图
+const envTexture =  textureLoader.load('./textures/door/ambientOcclusion.jpg')
+
+
 //创建几何体对象
 const geometry = new THREE.BoxGeometry( 1, 1, 1 )
 //创建材质
 const material = new THREE.MeshBasicMaterial( {
+    //颜色纹理
     map:doorTexture,
+    //灰度纹理贴图
     alphaMap:alphaTexture,
+    //环境遮挡贴图
+    aoMap:envTexture,
+    //环境遮挡贴图 默认为1
+    aoMapIntensity:0.5,
     transparent:true,
     //设置两面渲染
-    side:THREE.DoubleSide,
+    side:THREE.DoubleSide
 } );
 //创建物体
 const cube = new THREE.Mesh( geometry, material );
 
+scene.add(cube);
+geometry.setAttribute('uv2',new THREE.BufferAttribute(geometry.attributes.uv.array,2))
+
+//创建平面几何体
+const planeGeometry = new THREE.PlaneGeometry(1,1)
 
 const plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(1,1),
+    planeGeometry,
     material
 )
 
 plane.position.set(3,0,0)
 scene.add(plane);
 
+//给平面设置第二组uv
+planeGeometry.setAttribute('uv2',new THREE.BufferAttribute(planeGeometry.attributes.uv.array,2))
 
 //添加物体到场景中
-scene.add(cube);
 
 //初始化渲染器
 const renderer = new THREE.WebGLRenderer()

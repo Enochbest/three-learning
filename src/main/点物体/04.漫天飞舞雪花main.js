@@ -14,10 +14,10 @@ const scene = new THREE.Scene();
 const axesHepler = new THREE.AxesHelper( 5 )
 scene.add(axesHepler)
 
-const camera = new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000)
+const camera = new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,40)
 
 //设置相机位置
-camera.position.set(0,0,20)
+camera.position.set(0,0,40)
 
 //添加相机到场景
 scene.add(camera)
@@ -89,7 +89,9 @@ function createdPoints(url,size = 0.5) {
 }
 
 
-
+const points1 = createdPoints(9,1.5)
+const points2 = createdPoints(13,1)
+const points3 = createdPoints(10,2)
 
 
 
@@ -115,6 +117,11 @@ const clock = new THREE.Clock();
 //帧渲染
 function render() {
    let time = clock.getElapsedTime()
+    points1.rotation.x = time*0.3
+    points2.rotation.x = time*0.5
+    points2.rotation.y = time*0.4
+    points3.rotation.x = time*0.2
+    points3.rotation.y = time*0.2
     //阻尼效果更新
     controls.update();
     renderer.render(scene,camera)

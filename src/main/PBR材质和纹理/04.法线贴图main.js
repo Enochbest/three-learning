@@ -35,31 +35,77 @@ const doorTexture =  textureLoader.load('./textures/door/color.jpg')
 //加载灰度纹理
 const alphaTexture =  textureLoader.load('./textures/door/alpha.jpg')
 
+//加载环境遮挡贴图
+const envTexture =  textureLoader.load('./textures/door/ambientOcclusion.jpg')
+
+//加载置换贴图
+const doorHeight = textureLoader.load('./textures/door/height.jpg')
+
+//导入粗糙度贴图
+const roughnessTexture = textureLoader.load('./textures/door/roughness.jpg')
+
+//导入金属贴图
+const metalnessTexture = textureLoader.load('./textures/door/metalness.jpg')
+
+//导入发现贴图(描述光反射的方向)
+const mormalTexture = textureLoader.load('./textures/door/normal.jpg')
+
+
 //创建几何体对象
-const geometry = new THREE.BoxGeometry( 1, 1, 1 )
+const geometry = new THREE.BoxGeometry( 1, 1, 1,200,200 )
 //创建材质
-const material = new THREE.MeshBasicMaterial( {
+const material = new THREE.MeshStandardMaterial( {
     map:doorTexture,
     alphaMap:alphaTexture,
+    aoMap:envTexture,
     transparent:true,
     //设置两面渲染
     side:THREE.DoubleSide,
+    //设置置换贴图
+    displacementMap:doorHeight,
+    //置换贴图影响程度 (默认为1)
+    displacementScale:0.1,
+    //粗糙度
+    roughness:1,
+    //粗糙度贴图
+    roughnessMap:roughnessTexture,
+    //金属度
+    metalness:1,
+    //金属贴图
+    metalnessMap:metalnessTexture,
+    //法线贴图
+    normalMap:mormalTexture
 } );
 //创建物体
 const cube = new THREE.Mesh( geometry, material );
 
+scene.add(cube);
+geometry.setAttribute('uv2',new THREE.BufferAttribute(geometry.attributes.uv.array,2))
+
+//创建平面几何体
+const planeGeometry = new THREE.PlaneGeometry(1,1,200,200)
 
 const plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(1,1),
+    planeGeometry,
     material
 )
 
-plane.position.set(3,0,0)
+plane.position.set(2,0,0)
 scene.add(plane);
 
+//给平面设置第二组uv
+planeGeometry.setAttribute('uv2',new THREE.BufferAttribute(planeGeometry.attributes.uv.array,2))
 
-//添加物体到场景中
-scene.add(cube);
+//添加环境光(e无方向)
+const light = new THREE.AmbientLight(0xffffff,0.5)
+scene.add(light);
+
+//设置平行光源
+
+const directLight = new THREE.DirectionalLight(0xffffff,0.5)
+directLight.position.set(0,10,10)
+scene.add(directLight);
+
 
 //初始化渲染器
 const renderer = new THREE.WebGLRenderer()

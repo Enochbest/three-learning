@@ -2,6 +2,7 @@ import * as THREE from "three";
 
 //导入轨道控制器
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader'
 
 
 
@@ -26,40 +27,43 @@ camera.position.set(0,0,10)
 //添加相机到场景
 scene.add(camera)
 
-//导入纹理
-const textureLoader = new THREE.TextureLoader()
+//加载HDR环境图
 
-//加载颜色纹理
-const doorTexture =  textureLoader.load('./textures/door/color.jpg')
+const rgbeLoader = new RGBELoader()
 
-//加载灰度纹理
-const alphaTexture =  textureLoader.load('./textures/door/alpha.jpg')
+rgbeLoader.loadAsync('/textures/hdr/002.hdr').then((texture)=>{
+    //注意需要修改纹理的映射模式
+    texture.mapping = THREE.EquirectangularReflectionMapping
 
-//创建几何体对象
-const geometry = new THREE.BoxGeometry( 1, 1, 1 )
-//创建材质
-const material = new THREE.MeshBasicMaterial( {
-    map:doorTexture,
-    alphaMap:alphaTexture,
-    transparent:true,
-    //设置两面渲染
-    side:THREE.DoubleSide,
-} );
-//创建物体
-const cube = new THREE.Mesh( geometry, material );
+//给场景添加背景
+    scene.background = texture
+//给所有物体添加默认的环境贴图
+    scene.environment = texture
+})
 
+const sphereGeometry = new THREE.SphereGeometry(1,20,20)
 
-const plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(1,1),
-    material
-)
+const material = new THREE.MeshStandardMaterial({
+    metalness:0.7,
+    roughness:0.1,
+    // envMap:envMapTexture
+})
 
-plane.position.set(3,0,0)
-scene.add(plane);
+const sphere = new THREE.Mesh(sphereGeometry,material)
+
+scene.add(sphere)
 
 
-//添加物体到场景中
-scene.add(cube);
+
+//添加环境光(e无方向)
+const light = new THREE.AmbientLight(0xffffff,0.5)
+scene.add(light);
+
+//设置平行光源
+const directLight = new THREE.DirectionalLight(0xffffff,0.5)
+directLight.position.set(0,10,10)
+scene.add(directLight);
+
 
 //初始化渲染器
 const renderer = new THREE.WebGLRenderer()
