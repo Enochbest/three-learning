@@ -17,76 +17,71 @@ scene.add(axesHepler)
 const camera = new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000)
 
 //设置相机位置
-camera.position.set(0,0,20)
+camera.position.set(0,0,10)
 
 //添加相机到场景
 scene.add(camera)
 
+const textureLoader = new THREE.TextureLoader()
 
+const texture = textureLoader.load(`./textures/particles/1.png`)
 
-
-
-function createdPoints(url,size = 0.5) {
-
-    const paticlesGeometry = new THREE.BufferGeometry();
-    const count = 5000
-
-//设置缓冲区数组长度
-    const positions = new Float32Array(count * 3)
-
-//设置粒子顶点随机颜色
-    const colors = new Float32Array(count * 3)
-
-
-    for (let i = 0; i < count * 3; i++) {
-        positions[i] = (Math.random() -0.5) * 100
-        //随机颜色
-        colors[i] = Math.random()
-    }
-
-    paticlesGeometry.setAttribute("position",new THREE.BufferAttribute(positions,3))
-
-    paticlesGeometry.setAttribute("color",new THREE.BufferAttribute(colors,3))
-
-
-
-//点材质
-    const pointsMaterial = new THREE.PointsMaterial()
-
-//点的大小,默认为1
-    pointsMaterial.size = 0.5
-
-//设置点材质颜色
-    pointsMaterial.color.set(0xfff000)
-
-//相机深度衰减 (近大远小)
-    pointsMaterial.sizeAttenuation = true
-
-//载入纹理
-    const textureLoader = new THREE.TextureLoader()
-    const texture = textureLoader.load(`./textures/particles/${url}.png`)
-
-//设置点材质纹理
-    pointsMaterial.map = texture
-    pointsMaterial.alphaMap = texture
-    pointsMaterial.transparent = true
-
-//渲染此材质是否对深度缓冲区有任何影响。默认为true。
-    pointsMaterial.depthWrite = false
-
-//回合模式,叠加模式
-    pointsMaterial.blending = THREE.AdditiveBlending
-
-//设置启用顶点颜色
-    pointsMaterial.vertexColors = true
-
-
-    const points = new THREE.Points(paticlesGeometry,pointsMaterial)
-
-    scene.add(points)
-
-    return points
+const params = {
+    count:100,
+    size:0.1,
+    radius:5,
+    branches:3,
+    color:"#ffffff"
 }
+
+let geometry = null
+
+let material = null
+
+let points = null
+const generateGalaxy = ()=>{
+    //生成顶点
+    geometry = new THREE.BufferGeometry()
+    //生成顶点位置
+    const positions = new Float32Array(params.count * 3)
+    //设置顶点颜色
+    const color = new Float32Array(params.count*3)
+
+    //循环生成点
+    for (let i = 0; i < params.count; i++) {
+
+        //当前点在哪个分支的角度上
+        const branchAngel = (i % params.branches) * ((2*Math.PI) / params.branches)
+
+
+
+        //当前点距离圆心的距离
+        const  distance = Math.random()*params.radius
+        const current = i * 3
+        positions[current] = Math.cos(branchAngel) * distance
+        positions[current + 1] = 0
+        positions[current + 2] = Math.sin(branchAngel) * distance
+
+    }
+    //添加顶点
+    geometry.setAttribute("position",new THREE.BufferAttribute(positions,3))
+    //设置点材质
+    material = new THREE.PointsMaterial({
+        color:new THREE.Color(params.color),
+        size:params.size,
+        sizeAttenuation:true,
+        depthWrite:false,
+        blending:THREE.AdditiveBlending,
+        map:texture,
+        alphaMap:texture,
+        transparent:true,
+        // vertexColors:true
+    })
+    points = new THREE.Points(geometry,material)
+    scene.add(points)
+}
+
+generateGalaxy()
 
 
 

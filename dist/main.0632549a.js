@@ -35863,61 +35863,60 @@ scene.add(axesHepler);
 var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
 //设置相机位置
-camera.position.set(0, 0, 20);
+camera.position.set(0, 0, 10);
 
 //添加相机到场景
 scene.add(camera);
-function createdPoints(url) {
-  var size = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0.5;
-  var paticlesGeometry = new THREE.BufferGeometry();
-  var count = 5000;
+var textureLoader = new THREE.TextureLoader();
+var texture = textureLoader.load("./textures/particles/1.png");
+var params = {
+  count: 100,
+  size: 0.1,
+  radius: 5,
+  branches: 3,
+  color: "#ffffff"
+};
+var geometry = null;
+var material = null;
+var points = null;
+var generateGalaxy = function generateGalaxy() {
+  //生成顶点
+  geometry = new THREE.BufferGeometry();
+  //生成顶点位置
+  var positions = new Float32Array(params.count * 3);
+  //设置顶点颜色
+  var color = new Float32Array(params.count * 3);
 
-  //设置缓冲区数组长度
-  var positions = new Float32Array(count * 3);
+  //循环生成点
+  for (var i = 0; i < params.count; i++) {
+    //当前点在哪个分支的角度上
+    var branchAngel = i % params.branches * (2 * Math.PI / params.branches);
 
-  //设置粒子顶点随机颜色
-  var colors = new Float32Array(count * 3);
-  for (var i = 0; i < count * 3; i++) {
-    positions[i] = (Math.random() - 0.5) * 100;
-    //随机颜色
-    colors[i] = Math.random();
+    //当前点距离圆心的距离
+    var distance = Math.random() * params.radius;
+    var current = i * 3;
+    positions[current] = Math.cos(branchAngel) * distance;
+    positions[current + 1] = 0;
+    positions[current + 2] = Math.sin(branchAngel) * distance;
   }
-  paticlesGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  paticlesGeometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-
-  //点材质
-  var pointsMaterial = new THREE.PointsMaterial();
-
-  //点的大小,默认为1
-  pointsMaterial.size = 0.5;
-
-  //设置点材质颜色
-  pointsMaterial.color.set(0xfff000);
-
-  //相机深度衰减 (近大远小)
-  pointsMaterial.sizeAttenuation = true;
-
-  //载入纹理
-  var textureLoader = new THREE.TextureLoader();
-  var texture = textureLoader.load("./textures/particles/".concat(url, ".png"));
-
-  //设置点材质纹理
-  pointsMaterial.map = texture;
-  pointsMaterial.alphaMap = texture;
-  pointsMaterial.transparent = true;
-
-  //渲染此材质是否对深度缓冲区有任何影响。默认为true。
-  pointsMaterial.depthWrite = false;
-
-  //回合模式,叠加模式
-  pointsMaterial.blending = THREE.AdditiveBlending;
-
-  //设置启用顶点颜色
-  pointsMaterial.vertexColors = true;
-  var points = new THREE.Points(paticlesGeometry, pointsMaterial);
+  //添加顶点
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  //设置点材质
+  material = new THREE.PointsMaterial({
+    color: new THREE.Color(params.color),
+    size: params.size,
+    sizeAttenuation: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    map: texture,
+    alphaMap: texture,
+    transparent: true
+    // vertexColors:true
+  });
+  points = new THREE.Points(geometry, material);
   scene.add(points);
-  return points;
-}
+};
+generateGalaxy();
 
 //初始化渲染器
 var renderer = new THREE.WebGLRenderer();
@@ -35970,7 +35969,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60244" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "57338" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];
