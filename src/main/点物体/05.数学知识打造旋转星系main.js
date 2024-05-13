@@ -28,9 +28,9 @@ const textureLoader = new THREE.TextureLoader()
 const texture = textureLoader.load(`./textures/particles/1.png`)
 
 const params = {
-    count:10000,
+    count:20000,
     size:0.1,
-    radius:5,
+    radius:20,
     branches:12,
     color:"#ff6030",
     rotateScale:0.3,
