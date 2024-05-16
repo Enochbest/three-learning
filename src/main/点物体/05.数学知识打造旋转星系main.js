@@ -28,9 +28,9 @@ const textureLoader = new THREE.TextureLoader()
 const texture = textureLoader.load(`./textures/particles/1.png`)
 
 const params = {
-    count:20000,
+    count:10000,
     size:0.1,
-    radius:20,
+    radius:5,
     branches:12,
     color:"#ff6030",
     rotateScale:0.3,
@@ -127,7 +127,7 @@ const clock = new THREE.Clock();
 
 //帧渲染
 function render() {
-   let time = clock.getElapsedTime()
+    let time = clock.getElapsedTime()
     //阻尼效果更新
     controls.update();
     renderer.render(scene,camera)
