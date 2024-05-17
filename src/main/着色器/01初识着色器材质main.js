@@ -3,10 +3,7 @@ import * as THREE from "three";
 //导入轨道控制器
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import * as dat from 'dat.gui'
-
-import vertexShader from '../main/glslcode/vertexShader.glsl'
-import fragmentShader from '../main/glslcode/fragmentShader.glsl'
-
+import {lerp} from "three/src/math/MathUtils";
 
 //初始化gui
 const gui = new dat.GUI()
@@ -33,13 +30,23 @@ scene.add(camera)
 //创建着色器材质
 const shaderMaterial = new THREE.ShaderMaterial({
     //顶点着色器
-    vertexShader:vertexShader,
+    vertexShader:`
+        void main() {
+            gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4( position, 1.0 ) ;
+        }
+    `,
     //片元着色器
-    fragmentShader:fragmentShader
+    fragmentShader:`
+        void main() {
+            gl_FragColor = vec4(1.0, 0.0, 0.0, 1);
+        }
+    `
 })
 
+
+
 const floor = new THREE.Mesh(
-    new THREE.PlaneBufferGeometry(2,2,64,64),
+    new THREE.PlaneBufferGeometry(1,1,64,64),
     shaderMaterial
 )
 scene.add(floor)
