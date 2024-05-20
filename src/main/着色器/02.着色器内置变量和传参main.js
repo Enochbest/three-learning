@@ -35,14 +35,12 @@ const rawShaderMaterial = new THREE.RawShaderMaterial({
     //顶点着色器
     vertexShader:vertexShader,
     //片元着色器
-    fragmentShader:fragmentShader,
-    side:THREE.DoubleSide
-
+    fragmentShader:fragmentShader
 })
 
 const floor = new THREE.Mesh(
-    new THREE.PlaneBufferGeometry(1,1,64,64),
-    rawShaderMaterial,
+    new THREE.PlaneBufferGeometry(2,2,64,64),
+    rawShaderMaterial
 )
 scene.add(floor)
 
