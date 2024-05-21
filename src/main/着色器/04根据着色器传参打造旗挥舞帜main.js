@@ -4,8 +4,8 @@ import * as THREE from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import * as dat from 'dat.gui'
 
-import vertexShader from './deepShader/raw/vertexShader.glsl'
-import fragmentShader from './deepShader/raw/fragmentShader.glsl'
+import vertexShader from '../main/glslcode/raw/vertexShader.glsl'
+import fragmentShader from '../main/glslcode/raw/fragmentShader.glsl'
 
 
 //初始化gui
@@ -21,13 +21,14 @@ scene.add(axesHepler)
 const camera = new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000)
 
 //设置相机位置
-camera.position.set(0,0,2)
+camera.position.set(0,0,10)
 
 //添加相机到场景
 scene.add(camera)
 
 
-
+const textLoader = new THREE.TextureLoader()
+const texture = textLoader.load("./textures/ca.jpeg")
 
 const params = {
     uFrequency:10,
@@ -40,11 +41,17 @@ const rawShaderMaterial = new THREE.RawShaderMaterial({
     vertexShader:vertexShader,
     //片元着色器
     fragmentShader:fragmentShader,
+    side:THREE.DoubleSide,
     uniforms:{
         uTime:{
             value:0,
         },
-    }})
+        uTexture:{
+            value:texture,
+        }
+    }
+
+})
 
 const floor = new THREE.Mesh(
     new THREE.PlaneBufferGeometry(1,1,64,64),

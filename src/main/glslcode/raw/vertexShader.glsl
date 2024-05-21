@@ -11,6 +11,8 @@ uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 
+//获取原始着色器材质传入的时间
+uniform float uTime;
 
 varying vec2 vUv;
 
@@ -21,8 +23,8 @@ void main() {
     //将uv从顶点着色器传递到片元着色器中 需要在片源着色器中 varying vec2 vUv;声明变量
     vUv = uv;
     vec4 modelPosition = modelMatrix * vec4( position, 1.0 );
-    modelPosition.z = sin(modelPosition.x*10.0) * 0.05;
-    modelPosition.z += sin(modelPosition.y*10.0) * 0.05;
+    modelPosition.z = sin((modelPosition.x + uTime)*10.0) * 0.05;
+    modelPosition.z += sin((modelPosition.y + uTime)*10.0) * 0.05;
     //将顶点的z轴数据传递,也就是高度
     vElevation = modelPosition.z;
     gl_Position = projectionMatrix * viewMatrix * modelPosition;
