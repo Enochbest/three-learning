@@ -4,8 +4,8 @@ import * as THREE from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import * as dat from 'dat.gui'
 
-import vertexShader from './deepShader/raw/vertexShader.glsl'
-import fragmentShader from './deepShader/raw/fragmentShader.glsl'
+import vertexShader from '../deepShader/raw/vertexShader.glsl'
+import fragmentShader from '../deepShader/raw/fragmentShader.glsl'
 
 
 //初始化gui
@@ -50,7 +50,6 @@ const floor = new THREE.Mesh(
     new THREE.PlaneBufferGeometry(1,1,64,64),
     rawShaderMaterial,
 )
-console.log(floor)
 scene.add(floor)
 
 //初始化渲染器
