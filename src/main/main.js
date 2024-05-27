@@ -27,12 +27,15 @@ camera.position.set(0,0,2)
 scene.add(camera)
 
 
-
-
 const params = {
     uFrequency:10,
     uScale:0.1
 }
+
+// 创建纹理加载器对象
+const textureLoader = new THREE.TextureLoader();
+const texture = textureLoader.load("./texture/da.jpeg");
+
 
 //创建着色器材质
 const rawShaderMaterial = new THREE.RawShaderMaterial({
@@ -44,7 +47,38 @@ const rawShaderMaterial = new THREE.RawShaderMaterial({
         uTime:{
             value:0,
         },
+        uColor: {
+            value: new THREE.Color("purple"),
+        },
+        // 波浪的频率
+        uFrequency: {
+            value: params.uFrequency,
+        },
+        // 波浪的幅度
+        uScale: {
+            value: params.uScale,
+        },
+        uTexture: {
+            value: texture,
+        },
     }})
+
+gui
+    .add(params, "uFrequency")
+    .min(0)
+    .max(50)
+    .step(0.1)
+    .onChange((value) => {
+        rawShaderMaterial.uniforms.uFrequency.value = value;
+    });
+gui
+    .add(params, "uScale")
+    .min(0)
+    .max(1)
+    .step(0.01)
+    .onChange((value) => {
+        rawShaderMaterial.uniforms.uScale.value = value;
+    });
 
 const floor = new THREE.Mesh(
     new THREE.PlaneBufferGeometry(1,1,64,64),
