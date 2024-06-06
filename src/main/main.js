@@ -2,13 +2,14 @@ import * as THREE from "three";
 
 //导入轨道控制器
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import vertexShader from './flyLightShader/vertexShader.glsl'
-import fragmentShader from './flyLightShader/fragmentShader.glsl'
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+//导入water
+import {Water} from 'three/examples/jsm/objects/Water2'
+import {RGBELoader} from "three/examples/jsm/loaders/RGBELoader";
+import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader'
 //导入动画库
-import {gsap} from "gsap";
-
+import * as dat from 'dat.gui'
+//初始化gui
+const gui = new dat.GUI()
 // 1、创建场景
 const scene = new THREE.Scene();
 
@@ -16,87 +17,50 @@ const scene = new THREE.Scene();
 const axesHepler = new THREE.AxesHelper( 5 )
 scene.add(axesHepler)
 
-const rgbeLoader = new RGBELoader()
-rgbeLoader.loadAsync('./assets/2k.hdr').then((texture)=>{
-    //设置环境映射方式
-    texture.mapping = THREE.EquirectangularReflectionMapping
-    scene.background = texture
-    scene.environment = texture
-})
-
 const camera = new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000)
 
 //设置相机位置
-camera.position.set(0,0,10)
+camera.position.set(0,5,5)
 
 //添加相机到场景
 scene.add(camera)
 
 
-// 创建纹理加载器对象
+
+//加载场景背景
+const rgbeLoader = new RGBELoader()
+rgbeLoader.loadAsync('./assets/050.hdr').then((texture)=>{
+    texture.mapping = THREE.EquirectangularReflectionMapping
+    scene.background = texture
+    scene.environment = texture
+})
 
 
-//创建着色器材质
-const rawShaderMaterial = new THREE.ShaderMaterial({
-    //顶点着色器
-    vertexShader:vertexShader,
-    //片元着色器
-    fragmentShader:fragmentShader,
-    uniforms: {},
-    side: THREE.DoubleSide,
-   })
+//加载鱼缸
+const gltfLoader = new GLTFLoader()
+gltfLoader.load('./assets/model/yugang.glb',(gltf)=>{
+    const yugang = gltf.scene.children[0]
+    yugang.material.side = THREE.DoubleSide
+    const waterGeometry = gltf.scene.children[1].geometry
+    console.log(waterGeometry,'---waterGeometry---')
+
+
+    const water = new Water(waterGeometry,{
+        color:"#FFFFFF",
+        scale:1,
+        flowDirection:new THREE.Vector2(1,1),
+        textureHeight:1024,
+        textureWidth:1024,
+    })
+    scene.add(water)
+    scene.add(yugang)
+})
+
+const directionLight = new THREE.DirectionalLight(0xfffff,0.5)
+scene.add(directionLight)
 
 //初始化渲染器
 const renderer = new THREE.WebGLRenderer({ alpha: true })
-
-renderer.outputEncoding = THREE.sRGBEncoding;
-//场景色调渲染算法
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-// renderer.toneMapping = THREE.LinearToneMapping;
-// renderer.toneMapping = THREE.ReinhardToneMapping;
-// renderer.toneMapping = THREE.CineonToneMapping;
-//设置环境曝光程度
-renderer.toneMappingExposure = 0.2
-
-
-
-const gltfLoader = new GLTFLoader();
-let lightBox = null;
-gltfLoader.loadAsync('./assets/model/flyLight.glb').then(gltf=>{
-    //外部引入模型添加到场景中
-    console.log(gltf);
-    scene.add(gltf.scene);
-    lightBox = gltf.scene.children[1]
-    lightBox.material = rawShaderMaterial
-
-    for (let i = 0; i < 150; i++) {
-        //true 克隆  gltf.scene下的所有子元素
-        let flyingLight = gltf.scene.clone(true)
-        // -150  -  150
-        let x = (Math.random() - 0.5) * 300
-        // -150  -  150
-        let z = (Math.random() - 0.5) * 300
-        let y = Math.random()*60 + 25
-        flyingLight.position.set(x,y,z)
-        scene.add(flyingLight)
-        gsap.to(flyingLight.rotation,{
-            y:2*Math.PI,
-            duration:10 + Math.random()*30,
-            repeat:-1,
-        })
-        gsap.to(flyingLight.position,{
-            x:"+=" + Math.random() * 10,
-            y:"+=" + Math.random() * 20,
-            duration:5 + Math.random()*30,
-            repeat:-1,
-            //往返运动
-            yoyo:true,
-        })
-    }
-
-
-})
-
 
 
 //设置渲染尺寸的大小
@@ -128,8 +92,8 @@ const controls = new OrbitControls(camera,renderer.domElement)
 controls.enableDamping = true
 
 //设置控制器自动旋转
-controls.autoRotate = true
-controls.autoRotateSpeed = 0.5
+// controls.autoRotate = true
+// controls.autoRotateSpeed = 0.5
 //设置控制器角度
 // controls.maxPolarAngle = Math.PI
 // controls.minPolarAngle = Math.PI / 4* 3
