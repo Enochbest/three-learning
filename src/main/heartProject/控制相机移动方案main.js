@@ -177,7 +177,7 @@ var tween;
 
 
 //单向移动
-function animateCamera(current1, target1, current2, target2) {
+function animateCamera() {
 
     let positionVar = {
         x1: camera.position.x,
@@ -204,9 +204,9 @@ function animateCamera(current1, target1, current2, target2) {
 
     tween1.onUpdate(function() {
         camera.position.set(
-             10 * Math.sin(positionVar.rotation),
+            10 * Math.sin(positionVar.rotation),
             positionVar.y1,
-             10 * Math.cos(positionVar.rotation)
+            10 * Math.cos(positionVar.rotation)
         );
         controls.target.x = positionVar.x2;
         controls.target.y = positionVar.y2;
