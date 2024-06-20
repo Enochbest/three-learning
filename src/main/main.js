@@ -2,97 +2,323 @@ import * as THREE from "three";
 
 //导入轨道控制器
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import * as dat from 'dat.gui'
-import * as TWEEN from '@tweenjs/tween.js';
 //初始化gui
 const gui = new dat.GUI()
+import * as TWEEN from '@tweenjs/tween.js';
+
+const textureLoader = new THREE.TextureLoader()
 
 // 1、创建场景
 const scene = new THREE.Scene();
 
 //添加坐标辅助
 const axesHepler = new THREE.AxesHelper( 20 )
-scene.add(axesHepler)
+// scene.add(axesHepler)
 
-//灯光与阴影满足条件
-//1.材质要满足能够对光照有反应
-//2.设置渲染器开启对阴影的计算 renderer.shadowMap.enabled = true
-//3.设置光照投射阴影开启 directLight.castShadow = true
-//4.设置物体投射阴影 sphere.castShadow = true
-//5.设置物体接收阴影plane.receiveShadow = true
-
-const camera = new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000)
+const camera = new THREE.PerspectiveCamera(40,window.innerWidth/window.innerHeight,0.1,1000)
 
 //设置相机位置
-camera.position.set(0,2, 10)
+camera.position.set(4.25,1.4,-4.5)
 
 //添加相机到场景
 scene.add(camera)
 
+//汽车
+
+//车身材质
+let bodyMaterial = new THREE.MeshPhysicalMaterial({
+    color: 0x00ff00,
+    metalness: 1,
+    roughness: 0.5,
+    clearcoat: 0.5,
+    clearcoatRoughness: 0.03
+})
+
+// 玻璃材质
+let glassMaterial = new THREE.MeshPhysicalMaterial({
+    color: '#793e3e',
+    metalness: 0.25,
+    roughness: 0,
+    transmission: 1.0, // 透光性
+    opacity:1.0
+})
+
+//线条颜色
+let lineMaterial = new THREE.MeshPhysicalMaterial({
+    color: '#f7fcfa',
+    metalness: 1,
+    roughness: 0.5,
+    clearcoat: 0.5,
+    clearcoatRoughness: 0.03
+})
+
+let wheelColor = new THREE.MeshPhysicalMaterial({
+    color: '#f7fcfa',
+})
+
+let wheelInsideMaterial = new THREE.MeshPhysicalMaterial({
+    color: '#f7fcfa',
+    metalness: 0.8,
+    roughness: 0.5,
+    clearcoat: 0.5,
+    clearcoatRoughness: 0.03
+})
+
+// 玻璃材质
+let testMaterial = new THREE.MeshPhysicalMaterial({
+    color: '#793e3e',
+
+})
 
 
-//创建标准材质controls
-const material = new THREE.MeshStandardMaterial();
+// "Object_14"  "Object_4"
 
-const cubeGeometry = new THREE.BoxGeometry( 2, 1, 1 );
-const cube = new THREE.Mesh( cubeGeometry, material );
-cube.position.set(3,0,0)
-cube.castShadow = true
-scene.add(cube)
-//创建球
-const sphereGeometry = new THREE.SphereGeometry(1,20,20)
-const sphere = new THREE.Mesh(sphereGeometry,material)
-//开启物体投射阴影
-sphere.castShadow = true
-scene.add(sphere)
+//加载汽车模型
+const gltfLoader = new GLTFLoader()
+const dracoLoader = new DRACOLoader()
+dracoLoader.setDecoderPath('/draco/')
+gltfLoader.setDRACOLoader(dracoLoader)
+// 门
+let doors = []
+// "Object_21"
+let carModel = null
+gltfLoader.load('./assets/model/Lamborghini.glb',(gltf)=>{
+    carModel = gltf.scene
+    carModel.rotation.y = Math.PI
 
-//创建平面
-const planeGeometry = new THREE.PlaneGeometry(1024,1024)
-const plane = new THREE.Mesh(planeGeometry,material)
-plane.position.set(0,-1,0)
-plane.rotation.x = -Math.PI / 2
-plane.receiveShadow = true
-scene.add(plane)
+    carModel.traverse((obj)=>{
+        console.log(obj,'--obj--')
+        if(obj.name === 'Object_103' || obj.name === 'Object_64' || obj.name === 'Object_77'){
+            // 车身
+            obj.material = bodyMaterial
+        }else if(obj.name === 'Object_90'){
+            // 玻璃
+            obj.material = glassMaterial
+        }else if(obj.name === 'Empty001_16' || obj.name === 'Empty002_20'){
+            // 门
+            doors.push(obj)
+        }else if(obj.name==="Object_111"){
+            //顶部线条
+            obj.material = lineMaterial
+        }
+        else if(obj.name==="Object_21" || obj.name=== "Object_10"){
+            //轮胎线条
+            obj.material = wheelColor
+        }
+        else if(obj.name==="Object_14" || obj.name=== "Object_4"){
+            //轮胎线条
+            obj.material = wheelInsideMaterial
+        }
+        else{
+            return true
+        }
+    })
+    scene.add(carModel)
 
-//添加环境光(e无方向)
-const light = new THREE.AmbientLight(0xffffff,0.5)
-scene.add(light);
-
-//设置平行光源
-const directLight = new THREE.DirectionalLight(0xffffff,0.5)
-directLight.position.set(0,10,10)
-
-//开启光源阴影投射
-directLight.castShadow = true
-
-
-//阴影的属性
-
-//设置阴影贴图的模糊度
-directLight.shadow.radius = 20
-
-//设置阴影贴图的分辨率
-directLight.shadow.mapSize.set(4096,4096)
-
-//设置平行光相机阴影投射的范围
-directLight.shadow.camera.near = 0.5
-directLight.shadow.camera.far = 500
-directLight.shadow.camera.top = 5
-directLight.shadow.camera.bottom = -5
-directLight.shadow.camera.left = -5
-directLight.shadow.camera.right = 5
+})
 
 
-scene.add(directLight);
 
-gui.add(directLight.shadow.camera,"near").min(0).max(20).step(0.1).onChange(()=>{
-    console.log('666666')
-    directLight.shadow.camera.updateProjectionMatrix()
+
+//生成地板
+const floorGeometry = new THREE.PlaneGeometry(20,20)
+const floorMaterial = new THREE.MeshPhysicalMaterial({
+    side:THREE.DoubleSide,
+    color:0x808080,
+    metalness:0,//设置金属度
+    roughness:0.1//设置粗擦度稍微光滑
+})
+const mesh = new THREE.Mesh(floorGeometry,floorMaterial)
+mesh.rotation.x = Math.PI / 2
+scene.add(mesh)
+
+
+// 设置柱状展厅
+const cylinder = new THREE.CylinderGeometry(12,12,20,32)
+const cylinderMaterial = new THREE.MeshPhysicalMaterial({
+    color: 0x6c6c6c,
+    side: THREE.DoubleSide,
+})
+const cylinderMesh = new THREE.Mesh(cylinder,cylinderMaterial)
+scene.add(cylinderMesh)
+
+
+//设置从上到下的聚光灯
+const spotLight = new THREE.SpotLight('#fff',2)
+spotLight.angle = Math.PI / 6   //散射角度 和水平线的夹角
+spotLight.penumbra = 0.3// 横向，聚光锥的半影衰减百分比
+spotLight.decay = 1 // 纵向，沿着光照距离的衰减量
+spotLight.distance = 30
+spotLight.shadow.radius = 20
+spotLight.shadow.mapSize.set(4096,4096)
+spotLight.position.set(0,10,0)
+spotLight.target.position.set(0,0,0) // 光照射的方向
+spotLight.castShadow = true
+scene.add(spotLight)
+
+
+//光源
+
+// 设置环境光源
+const ambientLight = new THREE.AmbientLight('#fff',0.5)
+scene.add(ambientLight)
+
+
+const params = {
+    color:bodyMaterial.color.getHex(),
+    glassColor:glassMaterial.color.getHex(),
+    lineColor:lineMaterial.color.getHex(),
+    wheelLineColor:wheelColor.color.getHex(),
+    wheelInsideColor:wheelInsideMaterial.color.getHex()
+}
+
+//控制面板
+const bodyChange = gui.addFolder("车身材质设置")
+//车身颜色设置
+bodyChange.addColor(params,'color').name('车身颜色').onChange(value=>{
+    console.log(value,'---color--')
+    bodyMaterial.color.set(value);
+})
+bodyChange.addColor(params,'wheelInsideColor').name('轮毂颜色').onChange(value=>{
+    console.log(value,'---color--')
+    wheelInsideMaterial.color.set(value);
+})
+//车身金属度设置
+bodyChange.add(bodyMaterial,'metalness').min(0.0).max(1.0).step(0.001).name('金属度').onChange(value=>{
+    bodyMaterial.metalness = value
+})
+//车身镜面反射
+bodyChange.add(bodyMaterial,'roughness').min(0.0).max(1.0).step(0.001).name('镜面反射').onChange(value=>{
+    bodyMaterial.roughness = value
+})
+
+bodyChange.add(bodyMaterial,'clearcoat').min(0.0).max(1.0).step(0.001).name('车身表面漆面半透明').onChange(value=>{
+    bodyMaterial.clearcoat = value
+})
+bodyChange.add(bodyMaterial,'clearcoatRoughness').min(0.0).max(1.0).step(0.001).name('车身表面漆面粗糙度').onChange(value=>{
+    bodyMaterial.clearcoatRoughness  = value
+})
+const glassChange = gui.addFolder("玻璃设置")
+//玻璃颜色设置
+glassChange.addColor(params,'glassColor').name('玻璃颜色').onChange(value=>{
+    glassMaterial.color.set(value)
+})
+glassChange.add(glassMaterial,'metalness').min(0.0).max(1.0).step(0.001).name('玻璃金属度').onChange(value=>{
+    glassMaterial.metalness = value
+})
+glassChange.add(glassMaterial,'roughness').min(0.0).max(1.0).step(0.001).name('玻璃粗糙度').onChange(value=>{
+    glassMaterial.roughness = value
+})
+glassChange.add(glassMaterial,'transmission').min(0.0).max(1.0).step(0.001).name('玻璃透光性').onChange(value=>{
+    glassMaterial.transmission = value
+})
+
+const lineChange = gui.addFolder("线条颜色设置")
+lineChange.addColor(params,'lineColor').name('顶部线条颜色').onChange(value=>{
+    lineMaterial.color.set(value)
+})
+lineChange.addColor(params,'wheelLineColor').name('轮毂线条颜色').onChange(value=>{
+    wheelColor.color.set(value)
+})
+
+//添加控制动画和视角转移
+
+let carStatus
+// 打开左车门
+const carLeftOpen = () => {
+    carStatus = 'open'
+    setAnimationDoor({ x: 0, z: 0 }, { x: Math.PI / 3, z: -Math.PI / 6 }, doors[1])
+}
+// 打开右车门
+const carRightOpen = () => {
+    carStatus = 'open'
+    setAnimationDoor({ x: 0, z: 0 }, { x: Math.PI / 3, z: Math.PI / 6 }, doors[0])
+}
+// 关闭左车门
+const carLeftClose = () => {
+    carStatus = 'close'
+    setAnimationDoor({ x: Math.PI / 3 , z: -Math.PI / 6 }, { x: 0,z: 0 }, doors[1])
+}
+// 关闭右车门
+const carRightClose = () => {
+    carStatus = 'close'
+    setAnimationDoor({ x: Math.PI / 3 , z: Math.PI / 6 }, { x: 0,z: 0 }, doors[0])
+}
+
+// 车内视角
+const carIn = () => {
+    setAnimationCamera({ cx: camera.position.x, cy: camera.position.y, cz: camera.position.z, ox: 0, oy: 0, oz: 0 }, { cx: -0.27, cy: 0.83, cz: 0.60, ox: 0, oy: 0.5, oz: -3 });
+}
+// 车外视角
+const carOut = () => {
+    setAnimationCamera({ cx: -0.27, cy: 0.83, cz: 0.6, ox: 0, oy: 0.5, oz: -3 }, { cx: 4.25, cy: 1.4, cz: -4.5, ox: 0, oy: 0.5, oz: 0 });
+}
+
+const setAnimationDoor = (start, end, mesh) => {
+    const tween = new TWEEN.Tween(start).to(end, 1000).easing(TWEEN.Easing.Quadratic.Out)
+    tween.onUpdate((that) => {
+        mesh.rotation.x = that.x
+        mesh.rotation.z = that.z
+    })
+    tween.start()
+}
+
+const setAnimationCamera = (start, end) => {
+    const tween = new TWEEN.Tween(start).to(end, 1000).easing(TWEEN.Easing.Quadratic.Out)
+    tween.onUpdate((that) => {
+        //  camera.postition  和 controls.target 一起使用
+        camera.position.set(that.cx, that.cy, that.cz)
+        controls.target.set(that.ox, that.oy, that.oz)
+    })
+    tween.start()
+}
+
+var obj = { carRightOpen,carLeftOpen,carRightClose,carLeftClose,carIn,carOut }
+const doChange = gui.addFolder("动态操作设置")
+doChange.add(obj, "carLeftOpen").name('打开左车门')
+doChange.add(obj, "carRightOpen").name('打开右车门')
+doChange.add(obj, "carLeftClose").name('关闭左车门')
+doChange.add(obj, "carRightClose").name('关闭右车门')
+doChange.add(obj, "carIn").name('车内视角')
+doChange.add(obj, "carOut").name('车外视角')
+
+
+
+
+
+
+
+//创建投射光线对象
+const raycaster = new THREE.Raycaster();
+
+//设置鼠标的二维对象
+const mouse = new THREE.Vector2()
+window.addEventListener("click",(event)=>{
+    mouse.x = (event.clientX/window.innerWidth) * 2 - 1
+    mouse.y = -((event.clientY/window.innerHeight) * 2 - 1)
+    raycaster.setFromCamera(mouse,camera)
+    const results = raycaster.intersectObjects(scene.children)
+    console.log(results,'----6666-----')
+    results.forEach((item) => {
+        if (item.object.name === 'Object_64' || item.object.name === 'Object_77') {
+            if (!carStatus || carStatus === 'close') {
+                carLeftOpen()
+                carRightOpen()
+            } else {
+                carLeftClose()
+                carRightClose()
+            }
+        }
+    })
+
 })
 
 
 //初始化渲染器
-const renderer = new THREE.WebGLRenderer()
+const renderer = new THREE.WebGLRenderer({ antialias: true })
 
 //设置渲染尺寸的大小
 renderer.setSize(window.innerWidth,window.innerHeight)
@@ -111,195 +337,19 @@ const controls = new OrbitControls(camera,renderer.domElement)
 //设置控制器阻尼,增加真实感,必须在动画循环里调用update
 controls.enableDamping = true
 
-//设置控制器自动旋转
-// controls.autoRotate = true
-controls.autoRotateSpeed = 2
-// // 设置控制器角度
-controls.maxPolarAngle = Math.PI / 4 * 2.0
-controls.minPolarAngle = Math.PI / 4
-const clock = new THREE.Clock();
+//为了不缩放超出出圆柱体
+controls.maxDistance = 10 // 最大缩放距离
+controls.minDistance = 1 // 最小缩放距离
+controls.minPolarAngle = 0 // 最小旋转角度
+controls.maxPolarAngle = 85 / 360 * 2 * Math.PI // 最大旋转角度
 
 
-window.addEventListener("dblclick",()=>{
-    console.log("双击了平面")
-    animateCamera()
+
+window.addEventListener("resize",()=>{
+    renderer.setSize(window.innerWidth,window.innerHeight)
+    camera.aspect = window.innerWidth/window.innerHeight
+    camera.updateProjectionMatrix()
 })
-
-
-function changeCameraPosition() {
-    console.log(camera.position)
-    //解除滑动限制. 如果你在创建模型的时候设置了滑动平移放大缩小等限制在这里需要解除限制，不然达不到你想要的结果。
-    controls.minDistance = 0;
-    controls.maxPolarAngle = Math.PI / 1;
-    controls.enableRotate = false
-    controls.enableZoom = false
-    controls.update();
-    // 相机从当前位置camera.position飞行三维场景中某个世界坐标附近
-    new TWEEN.Tween({
-        // 相机开始坐标
-        x: camera.position.x,
-        y: camera.position.y,
-        z: camera.position.z,
-        // 相机开始指向的目标观察点
-        tx: 0,
-        ty: 0,
-        tz: 0,
-    })
-        .to({
-            // 相机结束坐标
-            x: 0,
-            y: 2,
-            z: -10,
-            // 相机结束指向的目标观察点
-            tx: 0,
-            ty: 0,
-            tz: 0,
-        }, 1000)
-        .easing(TWEEN.Easing.Quadratic.Out)
-        .onUpdate(function (e) {
-            //小程序中使用e，H5中使用this，获取结束的位置信息
-            // 动态改变相机位置
-            camera.position.set(this.x, this.y, this.z);
-            // 模型中心点
-            controls.target.set(this.tx, this.ty, this.tz);
-            controls.update();//内部会执行.lookAt()
-        })
-        .start();
-}
-
-
-
-// current1 相机当前的位置
-// target1 相机的controls的target
-// current2 新相机的目标位置
-// target2 新的controls的target
-var tween;
-
-
-//单向移动
-function animateCamera(current1, target1, current2, target2) {
-
-    let positionVar = {
-        x1: camera.position.x,
-        y1: camera.position.y,
-        z1: camera.position.z,
-        x2: 0,
-        y2: 0,
-        z2: 0,
-        rotation: 0
-    };
-    //关闭控制器
-    controls.enabled = false;
-    const tween1 = new TWEEN.Tween(positionVar);
-
-    tween1.to({
-        x1: 0,
-        y1: 1,
-        z1: -10,
-        x2: 0,
-        y2: 0,
-        z2: 0,
-        rotation: Math.PI
-    }, 500);
-
-    tween1.onUpdate(function() {
-        camera.position.set(
-             10 * Math.sin(positionVar.rotation),
-            positionVar.y1,
-             10 * Math.cos(positionVar.rotation)
-        );
-        controls.target.x = positionVar.x2;
-        controls.target.y = positionVar.y2;
-        controls.target.z = positionVar.z2;
-        controls.update();
-        console.log(positionVar);
-    })
-
-    tween1.onComplete(function() {
-        ///开启控制器
-        controls.enabled = true;
-    })
-    tween1.easing(TWEEN.Easing.Quadratic.Out);
-
-    tween1.start();
-}
-
-// 初始化两个向量，并忽略Y轴的分量
-const vector1 = new THREE.Vector3(0, 0, 10); // (0, 2, 10) -> (0, 0, 10)
-const vector2 = new THREE.Vector3(0, 0, -10); // (0, 2, -10) -> (0, 0, -10)
-const origin = new THREE.Vector3(0, 0, 0);
-
-function calculateAngleInXZPlane(point1, point2, origin) {
-    // 创建从原点到第一个点的向量
-    const vector1 = new THREE.Vector3(point1.x - origin.x, 0, point1.z - origin.z);
-    // 创建从原点到第二个点的向量
-    const vector2 = new THREE.Vector3(point2.x - origin.x, 0, point2.z - origin.z);
-
-    // 规范化向量
-    const normalizedVector1 = vector1.clone().normalize();
-    const normalizedVector2 = vector2.clone().normalize();
-
-    // 计算点积
-    const dotProduct = normalizedVector1.dot(normalizedVector2);
-
-    // 确保点积值在有效范围内 [-1, 1]，以避免浮点数精度问题引起的错误
-    const clampedDotProduct = Math.min(Math.max(dotProduct, -1), 1);
-
-    // 计算两个向量之间的夹角（以弧度为单位）
-    const angleInRadians = Math.acos(clampedDotProduct);
-
-    return angleInRadians;
-}
-
-
-const angleInRadians = calculateAngleInXZPlane(vector1, vector2, origin);
-
-console.log('Angle in radians:', angleInRadians);
-console.log(Math.PI,'----Math------')
-
-//弧形移动
-function animateCameraHalfCircle(){
-    // 定义半圆的路径参数
-    const radius = 10;
-    const startAngle = Math.PI / 2; // 90度，y=2处开始
-    const endAngle = -Math.PI / 2; // -90度，y=2处结束
-
-// 创建半圆路径上的点
-    const arcPoints = [];
-    const segments = 20; // 路径分段数量，越多越平滑
-    for (let i = 0; i <= segments; i++) {
-        const t = i / segments;
-        const angle = startAngle + t * (endAngle - startAngle);
-        const x = radius * Math.cos(angle);
-        const z = radius * Math.sin(angle);
-        arcPoints.push(new THREE.Vector3(0, 2, z));
-    }
-
-
-    // 创建Tween动画
-    // 创建Tween动画
-    let tween;
-    for (let i = 0; i < arcPoints.length - 1; i++) {
-        const to = arcPoints[i + 1];
-
-        const nextTween = new TWEEN.Tween(camera.position)
-            .to({ x: to.x, y: to.y, z: to.z }, 2000)
-            .onUpdate(() => {
-                camera.lookAt(new THREE.Vector3(0, 2, 0)); // 确保相机始终看向路径中心
-            });
-
-        if (!tween) {
-            tween = nextTween;
-        } else {
-            tween.chain(nextTween);
-            tween = nextTween;
-        }
-    }
-
-    tween.start();
-
-
-}
 
 //帧渲染
 function render() {
@@ -309,6 +359,7 @@ function render() {
     renderer.render(scene,camera)
     //下一帧调用render函数
     requestAnimationFrame(render)
+    gui.updateDisplay();
 }
 
 render()
